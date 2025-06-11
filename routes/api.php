@@ -46,7 +46,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('auth.login');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.forgot');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.reset');
-
+    Route::get('/indigenas', [IndigenaController::class, 'index']);
     // --- Protected Routes (Require Sanctum authentication) ---
     Route::middleware('auth:sanctum')->group(function () {
 
@@ -141,7 +141,7 @@ Route::prefix('config')->middleware(['auth:sanctum', 'role:admin'])->group(funct
     });
 
     Route::prefix('indigenas')->group(function () {
-        Route::get('/', [IndigenaController::class, 'index']);
+        
         Route::post('/', [IndigenaController::class, 'store']);
         Route::get('/{id}', [IndigenaController::class, 'show']);
         Route::put('/{id}', [IndigenaController::class, 'update']);
