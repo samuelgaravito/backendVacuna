@@ -71,7 +71,7 @@ Route::prefix('auth')->group(function () {
                 'roles' => $user->roles->pluck('name'),
                 'is_admin' => $user->hasRole('admin'),
                 'is_medico' => $user->hasRole('medico'),
-                'is_paciente' => $user->hasRole('paciente')
+                'is_paciente' => $user->hasRole('representante')
             ]);
         })->name('auth.check');
 
