@@ -18,6 +18,6 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('grupo_riesgo');
+        Schema::dropIfExists('grupos_riesgo');
     }
 };

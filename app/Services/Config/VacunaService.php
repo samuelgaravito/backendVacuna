@@ -13,7 +13,7 @@ class VacunaService
      * @param int $perPage
      * @return LengthAwarePaginator
      */
-    public function getAll(int $perPage = 10): LengthAwarePaginator
+    public function indexGrupo(int $perPage = 10): LengthAwarePaginator
     {
         return Vacuna::orderBy('nombre')->paginate($perPage);
     }

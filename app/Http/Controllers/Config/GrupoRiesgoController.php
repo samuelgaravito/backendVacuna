@@ -3,49 +3,90 @@
 namespace App\Http\Controllers\Config;
 
 use App\Http\Controllers\Controller;
-use App\Services\Config\GrupoRiesgoService;
+use App\Models\GrupoRiesgo; // Importa el modelo directamente
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class GrupoRiesgoController extends Controller
 {
-    protected $grupoRiesgoService;
-
-    public function __construct(GrupoRiesgoService $grupoRiesgoService)
+    public function __construct()
     {
-        $this->grupoRiesgoService = $grupoRiesgoService;
+        // No se necesita inyectar el servicio aquí
     }
 
-    public function index(Request $request)
+    /**
+     * Muestra una lista de grupos de riesgo o busca por término.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
     {
+        $perPage = 10; // Número de elementos por página
+
         if ($request->has('search')) {
-            return $this->grupoRiesgoService->search($request->search);
+            $searchTerm = $request->search;
+            $grupos = GrupoRiesgo::where('nombre', 'like', "%{$searchTerm}%")
+                                ->orderBy('nombre')
+                                ->paginate($perPage);
+        } else {
+            $grupos = GrupoRiesgo::orderBy('nombre')->paginate($perPage);
         }
-        return $this->grupoRiesgoService->getAll();
+
+        return response()->json($grupos);
     }
 
-    public function store(Request $request)
+    /**
+     * Almacena un nuevo grupo de riesgo.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'tipo' => 'required|string|max:255'
         ]);
 
-        return $this->grupoRiesgoService->create($validated);
+        // Crea el grupo de riesgo directamente desde el modelo
+        $grupo = GrupoRiesgo::create($validated);
+
+        return response()->json($grupo, 201); // 201 Created
     }
 
-    public function show(int $id)
+    /**
+     * Muestra un grupo de riesgo específico.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
     {
-        $grupo = $this->grupoRiesgoService->findById($id);
-        
-        return $grupo ?? response()->json([
-            'message' => 'Grupo de riesgo no encontrado'
-        ], 404);
+        // Busca el grupo de riesgo directamente desde el modelo
+        $grupo = GrupoRiesgo::find($id);
+
+        if (!$grupo) {
+            return response()->json([
+                'message' => 'Grupo de riesgo no encontrado'
+            ], 404);
+        }
+
+        return response()->json($grupo);
     }
 
-    public function update(Request $request, int $id)
+    /**
+     * Actualiza un grupo de riesgo existente.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function update(Request $request, int $id): JsonResponse
     {
-        $grupo = $this->grupoRiesgoService->findById($id);
-        
+        // Busca el grupo de riesgo directamente desde el modelo
+        $grupo = GrupoRiesgo::find($id);
+
         if (!$grupo) {
             return response()->json([
                 'message' => 'Grupo de riesgo no encontrado'
@@ -57,23 +98,34 @@ class GrupoRiesgoController extends Controller
             'tipo' => 'sometimes|string|max:255'
         ]);
 
-        return $this->grupoRiesgoService->update($grupo, $validated);
+        // Actualiza el grupo de riesgo directamente desde el modelo
+        $grupo->update($validated);
+
+        return response()->json($grupo);
     }
 
-    public function destroy(int $id)
+    /**
+     * Elimina un grupo de riesgo.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroy(int $id): JsonResponse
     {
-        $grupo = $this->grupoRiesgoService->findById($id);
-        
+        // Busca el grupo de riesgo directamente desde el modelo
+        $grupo = GrupoRiesgo::find($id);
+
         if (!$grupo) {
             return response()->json([
                 'message' => 'Grupo de riesgo no encontrado'
             ], 404);
         }
 
-        $this->grupoRiesgoService->delete($grupo);
+        // Elimina el grupo de riesgo directamente desde el modelo
+        $grupo->delete();
 
         return response()->json([
             'message' => 'Grupo de riesgo eliminado correctamente'
-        ]);
+        ], 200); // 200 OK es apropiado para una eliminación exitosa
     }
 }
