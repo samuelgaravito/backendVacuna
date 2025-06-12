@@ -168,3 +168,30 @@ Route::prefix('representados')->middleware(['auth:sanctum', 'role:user'])->group
     Route::post('/', [RepresentadoController::class, 'store']);
     Route::put('/{id}', [RepresentadoController::class, 'update']);
 });
+
+
+// =============================================================
+//  ADMIN REPRESENTADO ROUTES GROUP - Accesible solo por administradores
+// =============================================================
+Route::prefix('admin/representados')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+
+    Route::get('/', [RepresentadoController::class, 'indexAllRepresentadosAdmin']);
+    Route::get('/{id}', [RepresentadoController::class, 'showAdmin']);
+    Route::post('/', [RepresentadoController::class, 'storeForUserAdmin']);
+    Route::put('/{representadoId}', [RepresentadoController::class, 'updateForUserAdmin']);
+    Route::delete('/{representadoId}', [RepresentadoController::class, 'destroyForUserAdmin']);
+});
+
+/// ejemplo de como debe ser la consulta
+/* {
+    "user_id": 3,  // ID del usuario al que se le asignará este representado (debe tener rol 'representante')
+    "cedula": "28123456",
+    "nombre_completo": "Pedro Perez hijp",
+    "fecha_nacimiento": "2000-05-15",
+    "sexo": "M",
+    "nacionalidad": "venezolano",
+    "direccion": "Calle Falsa 123, Urb. Admin, Ciudad Admin",
+    "parroquia_id": null,   // ID de una parroquia existente (opcional, puede ser null)
+    "grupo_riesgo_id": null, // ID de un grupo de riesgo existente (opcional, puede ser null)
+    "indigena_id": null  // ID de un grupo indígena existente (opcional, puede ser null)
+} */
