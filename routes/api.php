@@ -71,7 +71,7 @@ Route::get('/grupo-riesgo', [GrupoRiesgoController::class, 'index']); // Ruta pa
                 'user' => $user->only(['id', 'name', 'email', 'cedula']),
                 'roles' => $user->roles->pluck('name'),
                 'is_admin' => $user->hasRole('admin'),
-                'is_medico' => $user->hasRole('medico'),
+                'is_medico' => $user->hasRole('personal de salud'),
                 'is_paciente' => $user->hasRole('representante')
             ]);
         })->name('auth.check');

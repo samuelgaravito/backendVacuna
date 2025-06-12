@@ -20,7 +20,7 @@ class StoreRepresentadoService
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        if (!$user->hasRole('user')) {
+        if (!$user->hasRole('representante')) {
             return response()->json(['message' => 'Permission denied. You do not have the required role.'], 403);
         }
 

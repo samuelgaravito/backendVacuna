@@ -25,7 +25,7 @@ class IndexUserRepresentadosService
         }
 
         // Verifica que el usuario tenga el rol 'user'
-        if (!$user->hasRole('user')) { // Ajusta 'user' al nombre real de tu rol con ID 3
+        if (!$user->hasRole('representante')) { // Ajusta 'user' al nombre real de tu rol con ID 3
             return response()->json(['message' => 'Permission denied. You do not have the required role to view assigned represented individuals.'], 403);
         }
 
