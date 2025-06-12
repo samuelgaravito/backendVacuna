@@ -47,7 +47,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.forgot');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.reset');
     Route::get('/indigenas', [IndigenaController::class, 'index']);
-Route::get('/grupo-riesgo', [GrupoRiesgoController::class, 'index']); // Ruta para listar y buscar
+    Route::get('/grupo-riesgo', [GrupoRiesgoController::class, 'index']);
+    Route::get('/estado', [UbicacionController::class, 'indexEstados']);
+    Route::get('/municipio', [UbicacionController::class, 'indexMunicipios']);
+    Route::get('/parroquia', [UbicacionController::class, 'indexParroquias']);
     // --- Protected Routes (Require Sanctum authentication) ---
     Route::middleware('auth:sanctum')->group(function () {
 
@@ -101,7 +104,7 @@ Route::get('/grupo-riesgo', [GrupoRiesgoController::class, 'index']); // Ruta pa
 Route::prefix('config')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     
     Route::prefix('estados')->group(function () {
-        Route::get('/', [UbicacionController::class, 'indexEstados']);
+
         Route::post('/', [UbicacionController::class, 'storeEstado']);
         Route::get('/{id}', [UbicacionController::class, 'showEstado']);
         Route::put('/{id}', [UbicacionController::class, 'updateEstado']);
@@ -110,7 +113,7 @@ Route::prefix('config')->middleware(['auth:sanctum', 'role:admin'])->group(funct
 
 
     Route::prefix('municipios')->group(function () {
-        Route::get('/', [UbicacionController::class, 'indexMunicipios']);
+        
         Route::post('/', [UbicacionController::class, 'storeMunicipio']);
         Route::get('/{id}', [UbicacionController::class, 'showMunicipio']);
         Route::put('/{id}', [UbicacionController::class, 'updateMunicipio']);
@@ -122,7 +125,7 @@ Route::prefix('config')->middleware(['auth:sanctum', 'role:admin'])->group(funct
 
 
     Route::prefix('parroquias')->group(function () {
-        Route::get('/', [UbicacionController::class, 'indexParroquias']);
+        
         Route::post('/', [UbicacionController::class, 'storeParroquia']);
         Route::get('/{id}', [UbicacionController::class, 'showParroquia']);
         Route::put('/{id}', [UbicacionController::class, 'updateParroquia']);
