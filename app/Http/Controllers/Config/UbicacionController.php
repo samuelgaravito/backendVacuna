@@ -4,43 +4,47 @@ namespace App\Http\Controllers\Config;
 
 use App\Http\Controllers\Controller;
 use App\Services\Config\EstadoService;
+use App\Services\Config\MunicipioService;
+use App\Services\Config\ParroquiaService;
 use Illuminate\Http\Request;
 
 class UbicacionController extends Controller
 {
+    // Métodos para Estados
+    
     /**
-     * Display a listing of the resource.
+     * Display a listing of estados.
      */
-    public function index(EstadoService $service)
+    public function indexEstados(EstadoService $service)
     {
         return $service->index();
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created estado.
      */
-    public function store(Request $request, EstadoService $service)
+    public function storeEstado(Request $request, EstadoService $service)
     {
         $validatedData = $request->validate([
             'nombre' => 'required|string|max:255',
-            // añade aquí otras validaciones necesarias
+            // otras validaciones necesarias
         ]);
         
         return $service->create($validatedData);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified estado.
      */
-    public function show($id, EstadoService $service)
+    public function showEstado($id, EstadoService $service)
     {
         return $service->findById($id);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified estado.
      */
-    public function update(Request $request, $id, EstadoService $service)
+    public function updateEstado(Request $request, $id, EstadoService $service)
     {
         $estado = $service->findById($id);
         if (!$estado) {
@@ -49,16 +53,16 @@ class UbicacionController extends Controller
 
         $validatedData = $request->validate([
             'nombre' => 'sometimes|string|max:255',
-            // añade aquí otras validaciones necesarias
+            // otras validaciones necesarias
         ]);
 
         return $service->update($estado, $validatedData);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified estado.
      */
-    public function destroy($id, EstadoService $service)
+    public function destroyEstado($id, EstadoService $service)
     {
         $estado = $service->findById($id);
         if (!$estado) {
@@ -68,6 +72,11 @@ class UbicacionController extends Controller
         return $service->delete($estado);
     }
 
+    // Métodos para Municipios
+
+    /**
+     * Display a listing of municipios.
+     */
     public function indexMunicipios(MunicipioService $service, Request $request)
     {
         if ($request->has('estado_id')) {
@@ -130,11 +139,70 @@ class UbicacionController extends Controller
         return $service->delete($municipio);
     }
 
+    // Métodos para Parroquias
+
     /**
-     * Get municipios by estado.
+     * Display a listing of parroquias.
      */
-    public function municipiosByEstado($estadoId, MunicipioService $service)
+    public function indexParroquias(ParroquiaService $service, Request $request)
     {
-        return $service->getByEstado($estadoId);
+        if ($request->has('municipio_id')) {
+            return $service->getByMunicipio($request->municipio_id);
+        }
+        return $service->getAll();
+    }
+
+    /**
+     * Store a newly created parroquia.
+     */
+    public function storeParroquia(Request $request, ParroquiaService $service)
+    {
+        $validatedData = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'municipio_id' => 'required|exists:municipios,id',
+            // otras validaciones necesarias
+        ]);
+        
+        return $service->create($validatedData);
+    }
+
+    /**
+     * Display the specified parroquia.
+     */
+    public function showParroquia($id, ParroquiaService $service)
+    {
+        return $service->findById($id);
+    }
+
+    /**
+     * Update the specified parroquia.
+     */
+    public function updateParroquia(Request $request, $id, ParroquiaService $service)
+    {
+        $parroquia = $service->findById($id);
+        if (!$parroquia) {
+            return response()->json(['message' => 'Parroquia no encontrada'], 404);
+        }
+
+        $validatedData = $request->validate([
+            'nombre' => 'sometimes|string|max:255',
+            'municipio_id' => 'sometimes|exists:municipios,id',
+            // otras validaciones necesarias
+        ]);
+
+        return $service->update($parroquia, $validatedData);
+    }
+
+    /**
+     * Remove the specified parroquia.
+     */
+    public function destroyParroquia($id, ParroquiaService $service)
+    {
+        $parroquia = $service->findById($id);
+        if (!$parroquia) {
+            return response()->json(['message' => 'Parroquia no encontrada'], 404);
+        }
+
+        return $service->delete($parroquia);
     }
 }

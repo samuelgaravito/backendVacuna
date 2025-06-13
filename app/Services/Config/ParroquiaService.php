@@ -1,208 +1,83 @@
 <?php
 
-namespace App\Http\Controllers\Config;
+namespace App\Services\Config;
 
-use App\Http\Controllers\Controller;
-use App\Services\Config\EstadoService;
-use App\Services\Config\MunicipioService;
-use App\Services\Config\ParroquiaService;
-use Illuminate\Http\Request;
+use App\Models\Parroquia; // Asegúrate de importar el modelo Parroquia
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection; // Si es necesario, para retornos de colecciones sin paginar
 
-class UbicacionController extends Controller
+class ParroquiaService
 {
-    // Métodos para Estados
-    
     /**
-     * Display a listing of estados.
+     * Obtiene todas las parroquias paginadas.
+     *
+     * @param int $perPage Número de elementos por página.
+     * @return LengthAwarePaginator
      */
-    public function indexEstados(EstadoService $service)
+    public function getAll(int $perPage = 15): LengthAwarePaginator
     {
-        return $service->index();
+        return Parroquia::orderBy('nombre')->paginate($perPage);
     }
 
     /**
-     * Store a newly created estado.
+     * Obtiene parroquias por ID de municipio, paginadas.
+     *
+     * @param int $municipioId El ID del municipio.
+     * @param int $perPage Número de elementos por página.
+     * @return LengthAwarePaginator
      */
-    public function storeEstado(Request $request, EstadoService $service)
+    public function getByMunicipio(int $municipioId, int $perPage = 15): LengthAwarePaginator
     {
-        $validatedData = $request->validate([
-            'nombre' => 'required|string|max:255',
-            // otras validaciones necesarias
-        ]);
-        
-        return $service->create($validatedData);
+        return Parroquia::where('municipio_id', $municipioId)
+                        ->orderBy('nombre')
+                        ->paginate($perPage);
     }
 
     /**
-     * Display the specified estado.
+     * Encuentra una parroquia por su ID.
+     *
+     * @param int $id El ID de la parroquia.
+     * @return Parroquia|null
      */
-    public function showEstado($id, EstadoService $service)
+    public function findById(int $id): ?Parroquia
     {
-        return $service->findById($id);
+        return Parroquia::find($id);
     }
 
     /**
-     * Update the specified estado.
+     * Crea una nueva parroquia.
+     *
+     * @param array $data Los datos para crear la parroquia.
+     * @return Parroquia
      */
-    public function updateEstado(Request $request, $id, EstadoService $service)
+    public function create(array $data): Parroquia
     {
-        $estado = $service->findById($id);
-        if (!$estado) {
-            return response()->json(['message' => 'Estado no encontrado'], 404);
-        }
-
-        $validatedData = $request->validate([
-            'nombre' => 'sometimes|string|max:255',
-            // otras validaciones necesarias
-        ]);
-
-        return $service->update($estado, $validatedData);
+        return Parroquia::create($data);
     }
 
     /**
-     * Remove the specified estado.
+     * Actualiza una parroquia existente.
+     *
+     * @param Parroquia $parroquia La instancia de la parroquia a actualizar.
+     * @param array $data Los datos para actualizar la parroquia.
+     * @return Parroquia
      */
-    public function destroyEstado($id, EstadoService $service)
+    public function update(Parroquia $parroquia, array $data): Parroquia
     {
-        $estado = $service->findById($id);
-        if (!$estado) {
-            return response()->json(['message' => 'Estado no encontrado'], 404);
-        }
-
-        return $service->delete($estado);
-    }
-
-    // Métodos para Municipios
-
-    /**
-     * Display a listing of municipios.
-     */
-    public function indexMunicipios(MunicipioService $service, Request $request)
-    {
-        if ($request->has('estado_id')) {
-            return $service->getByEstado($request->estado_id);
-        }
-        return $service->getAll();
+        $parroquia->update($data);
+        return $parroquia;
     }
 
     /**
-     * Store a newly created municipio.
+     * Elimina una parroquia.
+     *
+     * @param Parroquia $parroquia La instancia de la parroquia a eliminar.
+     * @return bool|null
      */
-    public function storeMunicipio(Request $request, MunicipioService $service)
+    public function delete(Parroquia $parroquia): ?bool
     {
-        $validatedData = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'estado_id' => 'required|exists:estados,id',
-            // otras validaciones necesarias
-        ]);
-        
-        return $service->create($validatedData);
-    }
-
-    /**
-     * Display the specified municipio.
-     */
-    public function showMunicipio($id, MunicipioService $service)
-    {
-        return $service->findById($id);
-    }
-
-    /**
-     * Update the specified municipio.
-     */
-    public function updateMunicipio(Request $request, $id, MunicipioService $service)
-    {
-        $municipio = $service->findById($id);
-        if (!$municipio) {
-            return response()->json(['message' => 'Municipio no encontrado'], 404);
-        }
-
-        $validatedData = $request->validate([
-            'nombre' => 'sometimes|string|max:255',
-            'estado_id' => 'sometimes|exists:estados,id',
-            // otras validaciones necesarias
-        ]);
-
-        return $service->update($municipio, $validatedData);
-    }
-
-    /**
-     * Remove the specified municipio.
-     */
-    public function destroyMunicipio($id, MunicipioService $service)
-    {
-        $municipio = $service->findById($id);
-        if (!$municipio) {
-            return response()->json(['message' => 'Municipio no encontrado'], 404);
-        }
-
-        return $service->delete($municipio);
-    }
-
-    // Métodos para Parroquias
-
-    /**
-     * Display a listing of parroquias.
-     */
-    public function indexParroquias(ParroquiaService $service, Request $request)
-    {
-        if ($request->has('municipio_id')) {
-            return $service->getByMunicipio($request->municipio_id);
-        }
-        return $service->getAll();
-    }
-
-    /**
-     * Store a newly created parroquia.
-     */
-    public function storeParroquia(Request $request, ParroquiaService $service)
-    {
-        $validatedData = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'municipio_id' => 'required|exists:municipios,id',
-            // otras validaciones necesarias
-        ]);
-        
-        return $service->create($validatedData);
-    }
-
-    /**
-     * Display the specified parroquia.
-     */
-    public function showParroquia($id, ParroquiaService $service)
-    {
-        return $service->findById($id);
-    }
-
-    /**
-     * Update the specified parroquia.
-     */
-    public function updateParroquia(Request $request, $id, ParroquiaService $service)
-    {
-        $parroquia = $service->findById($id);
-        if (!$parroquia) {
-            return response()->json(['message' => 'Parroquia no encontrada'], 404);
-        }
-
-        $validatedData = $request->validate([
-            'nombre' => 'sometimes|string|max:255',
-            'municipio_id' => 'sometimes|exists:municipios,id',
-            // otras validaciones necesarias
-        ]);
-
-        return $service->update($parroquia, $validatedData);
-    }
-
-    /**
-     * Remove the specified parroquia.
-     */
-    public function destroyParroquia($id, ParroquiaService $service)
-    {
-        $parroquia = $service->findById($id);
-        if (!$parroquia) {
-            return response()->json(['message' => 'Parroquia no encontrada'], 404);
-        }
-
-        return $service->delete($parroquia);
+        // Se recomienda manejar las dependencias (ej. eliminar datos asociados si aplica)
+        // antes de la eliminación si la base de datos no tiene restricciones ON DELETE CASCADE.
+        return $parroquia->delete();
     }
 }

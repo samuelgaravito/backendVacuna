@@ -22,6 +22,7 @@ use App\Http\Controllers\Config\{
 
 // Importa el controlador de Representado desde su ubicación correcta
 use App\Http\Controllers\Representado\RepresentadoController;
+use App\Http\Controllers\Registro\RegistroController;
 
 
 /*
@@ -74,7 +75,7 @@ Route::prefix('auth')->group(function () {
                 'user' => $user->only(['id', 'name', 'email', 'cedula']),
                 'roles' => $user->roles->pluck('name'),
                 'is_admin' => $user->hasRole('admin'),
-                'is_medico' => $user->hasRole('personal de salud'),
+                'is_medico' => $user->hasRole('personal_de_salud'),
                 'is_paciente' => $user->hasRole('representante')
             ]);
         })->name('auth.check');
@@ -198,3 +199,12 @@ Route::prefix('admin/representados')->middleware(['auth:sanctum', 'role:admin'])
     "grupo_riesgo_id": null, // ID de un grupo de riesgo existente (opcional, puede ser null)
     "indigena_id": null  // ID de un grupo indígena existente (opcional, puede ser null)
 } */
+
+
+// =============================================================
+//  REGISTRO ROUTES GROUP - Accesible por Admin y Personal de Salud
+// =============================================================
+Route::prefix('registro')->middleware(['auth:sanctum', 'role:admin,personal_de_salud'])->group(function () {
+    // Ruta para buscar por cédula (ej. /api/registro/search-cedula?cedula=V12345678)
+    Route::get('/search-cedula', [RegistroController::class, 'searchByCedula'])->name('registro.search_cedula');
+});
