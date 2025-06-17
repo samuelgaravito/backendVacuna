@@ -166,7 +166,7 @@ Route::prefix('config')->middleware(['auth:sanctum', 'role:admin'])->group(funct
 // =============================================================
 //  REPRESENTADO ROUTES GROUP - Accesible por usuarios con rol 'user'
 // =============================================================
-Route::prefix('representados')->middleware(['auth:sanctum', 'role:user'])->group(function () {
+Route::prefix('representados')->middleware(['auth:sanctum', 'role:representante'])->group(function () {
     // Estas rutas ahora serán accesibles en /api/representados
     Route::get('/', [RepresentadoController::class, 'indexUserRepresentados']);
     Route::post('/', [RepresentadoController::class, 'store']);
