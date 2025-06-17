@@ -104,4 +104,9 @@ class User extends Authenticatable
 
         return false;
     }
+
+        public function registrosAdministrados(): HasMany
+    {
+        return $this->hasMany(Registro::class, 'personal_salud_id');
+    }
 }

@@ -63,4 +63,9 @@ class Representado extends Model
     {
         return $this->belongsTo(Indigena::class);
     }
+
+        public function registrosVacunacion(): HasMany
+    {
+        return $this->hasMany(Registro::class, 'representado_id');
+    }
 }

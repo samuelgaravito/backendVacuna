@@ -19,4 +19,10 @@ class Vacuna extends Model
     ];
 
 
+        public function registros(): HasMany
+    {
+        return $this->hasMany(Registro::class, 'vacuna_id');
+    }
+
+
 }
