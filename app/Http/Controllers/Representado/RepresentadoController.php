@@ -9,6 +9,9 @@ use Illuminate\Http\JsonResponse;
 use App\Services\Representado\IndexUserRepresentadosService;
 use App\Services\Representado\StoreRepresentadoService;
 use App\Services\Representado\UpdateRepresentadoService;
+use App\Services\Representado\GetTarjetaVacunacionService;  
+
+
 
 use App\Services\Representado\IndexRepresentadosAdminService;    
 use App\Services\Representado\ShowRepresentadoAdminService;      
@@ -40,6 +43,11 @@ class RepresentadoController extends Controller
     public function update(Request $request, int $id, UpdateRepresentadoService $service): JsonResponse
     {
         return $service->execute($request, $id);
+    }
+
+        public function tarjetaVacunacion(int $id, GetTarjetaVacunacionService $service): JsonResponse
+    {
+        return $service->execute($id);
     }
 
 

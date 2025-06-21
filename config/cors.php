@@ -20,6 +20,7 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:8100')],
+    //'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
@@ -30,5 +31,5 @@ return [
     'max_age' => 0,
 
     'supports_credentials' => true,
-
+    //'supports_credentials' => false, // Set to true if you are using cookies/sessions (SPA mode)
 ];

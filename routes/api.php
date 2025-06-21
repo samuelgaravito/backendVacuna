@@ -154,9 +154,11 @@ Route::prefix('config')->middleware(['auth:sanctum', 'role:admin'])->group(funct
 //  REPRESENTADO ROUTES GROUP - Accesible por usuarios con rol 'representante'
 // =============================================================
 Route::prefix('representados')->middleware(['auth:sanctum', 'role:representante'])->group(function () {
+    // Estas rutas ahora serán accesibles en /api/representados
     Route::get('/', [RepresentadoController::class, 'indexUserRepresentados']);
     Route::post('/', [RepresentadoController::class, 'store']);
     Route::put('/{id}', [RepresentadoController::class, 'update']);
+    // Antiguas rutas de tarjeta de vacunación eliminadas de aquí
 });
 
 
@@ -169,6 +171,7 @@ Route::prefix('admin/representados')->middleware(['auth:sanctum', 'role:admin'])
     Route::post('/', [RepresentadoController::class, 'storeForUserAdmin']);
     Route::put('/{representadoId}', [RepresentadoController::class, 'updateForUserAdmin']);
     Route::delete('/{representadoId}', [RepresentadoController::class, 'destroyForUserAdmin']);
+    // Antiguas rutas de tarjeta de vacunación eliminadas de aquí
 });
 
 
@@ -178,13 +181,22 @@ Route::prefix('admin/representados')->middleware(['auth:sanctum', 'role:admin'])
 Route::prefix('registro')->middleware(['auth:sanctum', 'role:admin,personal_de_salud'])->group(function () {
     Route::get('/search-cedula', [RegistroController::class, 'searchByCedula']);
     Route::post('/', [RegistroController::class, 'store']);
+    Route::get('/{registroId}/seguimientos', [RegistroController::class, 'showSeguimientos']);
 });
 
 // =============================================================
 //  ADMIN REGISTRO ROUTES GROUP - Accesible SOLO por Admin para Edición
 // =============================================================
 Route::prefix('admin/registros')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
-    // Esta ruta ahora está específicamente bajo el middleware 'role:admin'
-    Route::put('/{id}', [RegistroController::class, 'update']); // <-- ¡MOVIMOS Y RENOMBRAMOS EL PREFIJO!
+    Route::put('/{id}', [RegistroController::class, 'update']);
+});
 
+
+// =============================================================
+//  ACCESO A DATOS DE REPRESENTADOS (Tarjeta de Vacunación)
+//  Accesible por Representante, Admin y Personal de Salud
+// =============================================================
+Route::prefix('tarjeta-vacunacion')->middleware(['auth:sanctum', 'role:representante,admin,personal_de_salud'])->group(function () {
+    // Esta es la única ruta para acceder a la tarjeta de vacunación ahora
+    Route::get('/{id}', [RepresentadoController::class, 'tarjetaVacunacion']); // <-- ¡RUTA CONSOLIDADA AQUÍ!
 });
