@@ -45,6 +45,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('auth.login');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.forgot');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.reset');
+    // Las rutas de Config (Indígenas, Grupos de Riesgo, Ubicación) son públicas en este grupo inicial
     Route::get('/indigenas', [IndigenaController::class, 'index']);
     Route::get('/grupo-riesgo', [GrupoRiesgoController::class, 'index']);
     Route::get('/estado', [UbicacionController::class, 'indexEstados']);
@@ -99,7 +100,7 @@ Route::prefix('auth')->group(function () {
 }); // End of 'auth' prefix group
 
 // =============================================================
-//  CONFIG ROUTES GROUP - Solo accesible por administradores
+//  CONFIG ROUTES GROUP - Solo accesible por administradores (gestión de datos maestros)
 // =============================================================
 Route::prefix('config')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
@@ -127,11 +128,11 @@ Route::prefix('config')->middleware(['auth:sanctum', 'role:admin'])->group(funct
     });
 
     Route::prefix('vacunas')->group(function () {
-        Route::get('/', [VacunaController::class, 'index']);
-        Route::post('/', [VacunaController::class, 'store']);
-        Route::get('/{id}', [VacunaController::class, 'show']);
-        Route::put('/{id}', [VacunaController::class, 'update']);
-        Route::delete('/{id}', [VacunaController::class, 'destroy']);
+        // La ruta GET / se ha movido a un nuevo grupo para permitir más roles
+        Route::post('/', [VacunaController::class, 'store']); // Solo admin puede crear
+        Route::get('/{id}', [VacunaController::class, 'show']); // Solo admin puede ver una vacuna específica
+        Route::put('/{id}', [VacunaController::class, 'update']); // Solo admin puede actualizar
+        Route::delete('/{id}', [VacunaController::class, 'destroy']); // Solo admin puede eliminar
     });
 
     Route::prefix('indigenas')->group(function () {
@@ -154,11 +155,9 @@ Route::prefix('config')->middleware(['auth:sanctum', 'role:admin'])->group(funct
 //  REPRESENTADO ROUTES GROUP - Accesible por usuarios con rol 'representante'
 // =============================================================
 Route::prefix('representados')->middleware(['auth:sanctum', 'role:representante'])->group(function () {
-    // Estas rutas ahora serán accesibles en /api/representados
     Route::get('/', [RepresentadoController::class, 'indexUserRepresentados']);
     Route::post('/', [RepresentadoController::class, 'store']);
     Route::put('/{id}', [RepresentadoController::class, 'update']);
-    // Antiguas rutas de tarjeta de vacunación eliminadas de aquí
 });
 
 
@@ -171,7 +170,6 @@ Route::prefix('admin/representados')->middleware(['auth:sanctum', 'role:admin'])
     Route::post('/', [RepresentadoController::class, 'storeForUserAdmin']);
     Route::put('/{representadoId}', [RepresentadoController::class, 'updateForUserAdmin']);
     Route::delete('/{representadoId}', [RepresentadoController::class, 'destroyForUserAdmin']);
-    // Antiguas rutas de tarjeta de vacunación eliminadas de aquí
 });
 
 
@@ -197,6 +195,16 @@ Route::prefix('admin/registros')->middleware(['auth:sanctum', 'role:admin'])->gr
 //  Accesible por Representante, Admin y Personal de Salud
 // =============================================================
 Route::prefix('tarjeta-vacunacion')->middleware(['auth:sanctum', 'role:representante,admin,personal_de_salud'])->group(function () {
-    // Esta es la única ruta para acceder a la tarjeta de vacunación ahora
-    Route::get('/{id}', [RepresentadoController::class, 'tarjetaVacunacion']); // <-- ¡RUTA CONSOLIDADA AQUÍ!
+    Route::get('/{id}', [RepresentadoController::class, 'tarjetaVacunacion']);
+});
+
+
+// =============================================================
+//  VACUNAS (VISUALIZACIÓN) - Accesible por Admin y Personal de Salud
+// =============================================================
+Route::prefix('vacunas')->middleware(['auth:sanctum', 'role:admin,personal_de_salud'])->group(function () {
+    // Esta ruta permite a Admin y Personal de Salud ver todas las vacunas
+    Route::get('/', [VacunaController::class, 'index']); // <-- ¡RUTA MOVIDA Y CON ACCESO AMPLIADO AQUÍ!
+    // Si también necesitaran ver una vacuna específica, podrías añadir:
+    // Route::get('/{id}', [VacunaController::class, 'show']);
 });

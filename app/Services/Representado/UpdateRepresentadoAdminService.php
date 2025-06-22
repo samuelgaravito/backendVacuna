@@ -39,11 +39,12 @@ class UpdateRepresentadoAdminService
                         // Solo ejecuta esta lógica si un user_id ha sido proporcionado en la solicitud
                         if ($value !== null) {
                             $user = User::find($value); // Busca el usuario por su ID.
-                            // --- CAMBIO AQUÍ: Ahora el usuario asignado debe tener el rol 'admin' ---
-                            // Si el usuario no existe (ya cubierto por 'exists') o NO tiene el rol 'admin', falla.
-                            if (!$user || !$user->hasRole('admin')) { // <-- Se cambió 'representante' por 'admin'
-                                $fail("El usuario seleccionado no tiene el rol 'admin'.");
-                            }
+                            // --- CAMBIO AQUÍ: La validación del rol 'admin' ha sido eliminada ---
+                            // Ahora, cualquier usuario existente puede ser asignado como user_id del representado.
+                            // Si el usuario no existe (ya cubierto por 'exists'), la validación fallará.
+                            // if (!$user || !$user->hasRole('admin')) {
+                            //     $fail("El usuario seleccionado no tiene el rol 'admin'.");
+                            // }
                         }
                     },
                 ],
