@@ -204,7 +204,6 @@ Route::prefix('tarjeta-vacunacion')->middleware(['auth:sanctum', 'role:represent
 // =============================================================
 Route::prefix('vacunas')->middleware(['auth:sanctum', 'role:admin,personal_de_salud'])->group(function () {
     // Esta ruta permite a Admin y Personal de Salud ver todas las vacunas
-    Route::get('/', [VacunaController::class, 'index']); // <-- ¡RUTA MOVIDA Y CON ACCESO AMPLIADO AQUÍ!
-    // Si también necesitaran ver una vacuna específica, podrías añadir:
-    // Route::get('/{id}', [VacunaController::class, 'show']);
+    Route::get('/', [VacunaController::class, 'index']);
+
 });
