@@ -3,7 +3,7 @@
 namespace App\Services\Registro; // Ajusta el namespace según tu estructura
 
 use App\Models\Registro;
-use App\Models\Representado; // Asegúrate de que esta línea esté presente
+use App\Models\Representado;
 use App\Models\Vacuna;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -14,9 +14,9 @@ use Illuminate\Support\Facades\DB; // Para transacciones si es necesario
 class StoreRegistroVacunaService
 {
     /**
-     * Registra una nueva vacuna administrada a un representado.
+     * Registra una nueva vacuna administrada a un representado, determinando la dosis automáticamente.
      *
-     * @param Request $request La solicitud HTTP con los datos del registro.
+     * @param Request $request La solicitud HTTP con los datos del registro (sin incluir 'dosis').
      * @return JsonResponse
      */
     public function execute(Request $request): JsonResponse
@@ -35,51 +35,44 @@ class StoreRegistroVacunaService
         }
 
         try {
-            // 3. Validar los datos del request
+            // 3. Validar los datos del request (la dosis ya NO se recibe aquí, se calcula automáticamente)
             $validatedData = $request->validate([
                 'representado_id' => 'required|exists:representados,id',
                 'vacuna_id'       => 'required|exists:vacunas,id',
-                'dosis'           => 'required|integer|min:1', // La dosis debe ser un entero positivo
+                // 'dosis' ya no está en la validación del request
             ], [
                 'representado_id.required' => 'El ID del representado es obligatorio.',
                 'representado_id.exists'   => 'El representado especificado no existe.',
                 'vacuna_id.required'       => 'El ID de la vacuna es obligatorio.',
                 'vacuna_id.exists'         => 'La vacuna especificada no existe.',
-                'dosis.required'           => 'El número de dosis es obligatorio.',
-                'dosis.integer'            => 'La dosis debe ser un número entero.',
-                'dosis.min'                => 'La dosis debe ser al menos 1.',
             ]);
 
-            // Obtener el Representado y la Vacuna para validaciones adicionales
+            // Obtener el Representado y la Vacuna para validaciones y cálculos
             $representado = Representado::findOrFail($validatedData['representado_id']);
             $vacuna = Vacuna::findOrFail($validatedData['vacuna_id']);
-            $dosisARegistrar = $validatedData['dosis'];
 
-            // 4. Lógica de Negocio: Validar la dosis contra la cantidad de la vacuna
-            // Comparamos la dosis que se quiere registrar con la 'cantidad' máxima/total de la vacuna.
-            // Si la dosis a registrar es mayor o igual a la cantidad de la vacuna, asumimos que no es válida.
-            // Por ejemplo, si una vacuna 'Covid' tiene cantidad 2 (dosis máxima), no puedes registrar la dosis 3.
+            // 4. Lógica de Negocio: Determinar automáticamente la siguiente dosis
+            // Buscar la última dosis registrada para este representado y esta vacuna.
+            $ultimoRegistroDosis = Registro::where('representado_id', $representado->id)
+                                           ->where('vacuna_id', $vacuna->id)
+                                           ->orderBy('dosis', 'desc') // Ordenar de mayor a menor para obtener la última dosis
+                                           ->first(); // Obtener el primer resultado (la mayor dosis)
+
+            $dosisARegistrar = 1; // Si no hay registros previos, la primera dosis es 1
+            if ($ultimoRegistroDosis) {
+                $dosisARegistrar = $ultimoRegistroDosis->dosis + 1; // Incrementar la última dosis
+            }
+
+            // 5. Lógica de Negocio: Validar que la dosis calculada NO exceda la cantidad máxima de la vacuna
+            // Comparamos la dosis calculada con la 'cantidad' máxima/total de la vacuna.
             if ($dosisARegistrar > $vacuna->cantidad) {
                 throw ValidationException::withMessages([
-                    'dosis' => "La dosis a registrar ({$dosisARegistrar}) excede la cantidad máxima para esta vacuna ({$vacuna->cantidad})."
+                    'dosis' => "No se puede registrar la dosis {$dosisARegistrar}. La cantidad máxima de dosis para la vacuna '{$vacuna->nombre}' es {$vacuna->cantidad} y ya ha sido alcanzada o excedida."
                 ]);
             }
 
-            // 5. Lógica de Negocio: Validar que esta dosis específica para esta vacuna NO haya sido registrada ya para este representado
-            // Esto evita registros duplicados para la misma dosis de la misma vacuna para el mismo representado.
-            $registroExistente = Registro::where('representado_id', $representado->id)
-                                         ->where('vacuna_id', $vacuna->id)
-                                         ->where('dosis', $dosisARegistrar)
-                                         ->exists();
-
-            if ($registroExistente) {
-                // --- CAMBIO AQUÍ: Se agrega el nombre completo del representado ---
-                throw ValidationException::withMessages([
-                    'dosis' => "La dosis {$dosisARegistrar} de la vacuna '{$vacuna->nombre}' ya ha sido registrada para el representado: {$representado->nombre_completo}."
-                ]);
-            }
-
-            // 6. Asignar el ID del personal de salud (usuario autenticado) a los datos validados
+            // 6. Asignar la dosis calculada y el ID del personal de salud (usuario autenticado) a los datos validados
+            $validatedData['dosis'] = $dosisARegistrar; // <-- La dosis se asigna automáticamente aquí
             $validatedData['personal_salud_id'] = $personalSalud->id;
 
             // 7. Crear el registro de la vacuna
@@ -91,7 +84,7 @@ class StoreRegistroVacunaService
             // 9. Retornar una respuesta JSON de éxito
             return response()->json([
                 'success' => true,
-                'message' => 'Vacuna registrada exitosamente.',
+                'message' => "Vacuna '{$vacuna->nombre}' (Dosis {$dosisARegistrar}) registrada exitosamente para el representado '{$representado->nombre_completo}'.",
                 'data'    => $registro
             ], 201);
 
@@ -102,10 +95,11 @@ class StoreRegistroVacunaService
                 'errors'  => $e->errors()
             ], 422);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Capturar si Representado o Vacuna no fueron encontrados (aunque 'exists' debería prevenir esto)
+            // Capturar si Representado o Vacuna no fueron encontrados
             return response()->json([
                 'success' => false,
-                'message' => 'Recurso no encontrado (Representado o Vacuna).'
+                'message' => 'Recurso no encontrado (Representado o Vacuna).',
+                'error'   => $e->getMessage()
             ], 404);
         } catch (\Exception $e) {
             // Capturar cualquier otra excepción inesperada
