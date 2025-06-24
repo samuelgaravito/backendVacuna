@@ -158,6 +158,7 @@ Route::prefix('representados')->middleware(['auth:sanctum', 'role:representante'
     Route::get('/', [RepresentadoController::class, 'indexUserRepresentados']);
     Route::post('/', [RepresentadoController::class, 'store']);
     Route::put('/{id}', [RepresentadoController::class, 'update']);
+    Route::get('/{id}', [RepresentadoController::class, 'show']);
 });
 
 

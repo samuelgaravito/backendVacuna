@@ -10,7 +10,7 @@ use App\Services\Representado\IndexUserRepresentadosService;
 use App\Services\Representado\StoreRepresentadoService;
 use App\Services\Representado\UpdateRepresentadoService;
 use App\Services\Representado\GetTarjetaVacunacionService;  
-
+use App\Services\Representado\ShowRepresentadoService;
 
 
 use App\Services\Representado\IndexRepresentadosAdminService;    
@@ -46,6 +46,11 @@ class RepresentadoController extends Controller
     }
 
         public function tarjetaVacunacion(int $id, GetTarjetaVacunacionService $service): JsonResponse
+    {
+        return $service->execute($id);
+    }
+
+        public function show(int $id, ShowRepresentadoService $service): JsonResponse // <-- ¡NUEVO MÉTODO!
     {
         return $service->execute($id);
     }
