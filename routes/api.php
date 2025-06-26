@@ -183,6 +183,19 @@ Route::prefix('registro')->middleware(['auth:sanctum', 'role:admin,personal_de_s
     Route::get('/{registroId}/seguimientos', [RegistroController::class, 'showSeguimientos']);
 });
 
+
+// =============================================================
+//  REGISTRO ROUTES GROUP - Accesible por Admin para ver resultado total de las vacunas y a detalle de cada una
+// =============================================================
+Route::prefix('admin/registro')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+
+    Route::get('/{fecha_inicio}/{fecha_fin}', [RegistroController::class, 'indexRegistros']);
+    Route::get('/{id}', [RegistroController::class, 'show']);
+});
+
+
+
+
 // =============================================================
 //  ADMIN REGISTRO ROUTES GROUP - Accesible SOLO por Admin para Edición
 // =============================================================

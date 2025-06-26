@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Registro;
 use App\Http\Controllers\Controller;
 use App\Services\Registro\BuscarPersonaService;
 use App\Services\Registro\StoreRegistroVacunaService;
-use App\Services\Registro\UpdateRegistroVacunaService; // <-- ¡NUEVA LÍNEA! Importa el servicio de actualización
+use App\Services\Registro\UpdateRegistroVacunaService;
+use App\Services\Registro\IndexRegistroService;
+use App\Services\Registro\ShowRegistroService;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
@@ -103,5 +106,27 @@ class RegistroController extends Controller
                 'message' => 'Ocurrió un error inesperado al actualizar el registro: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+
+ public function indexRegistros(Request $request, string $fecha_inicio, string $fecha_fin, IndexRegistroService $indexRegistroService): JsonResponse
+    {
+        // El controlador simplemente delega y devuelve la respuesta del servicio.
+        // El servicio se encarga de manejar los errores y formatear el JSON.
+        $data = [
+            'fecha_inicio' => $fecha_inicio,
+            'fecha_fin'    => $fecha_fin,
+            'per_page'     => $request->input('per_page', 15),
+        ];
+
+        return $indexRegistroService->execute($data);
+    }
+
+
+    public function show(int $id, ShowRegistroService $showRegistroService): JsonResponse
+    {
+        // El controlador simplemente delega y devuelve la respuesta del servicio.
+        // El servicio se encarga de encontrar el registro y manejar los errores 404/500.
+        return $showRegistroService->execute($id);
     }
 }
