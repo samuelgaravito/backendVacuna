@@ -15,7 +15,7 @@ class StoreRepresentadoAdminService
     /**
      * Permite a un administrador crear y asignar un representado a un usuario específico.
      * La cédula del representado se genera automáticamente a partir de la cédula del usuario representante
-     * y se le añade un sufijo numérico para garantizar la unicidad si es necesario.
+     * y se le añade un sufijo numérico para garantizar la unicidad.
      *
      * @param Request $request La solicitud HTTP.
      * @return JsonResponse
@@ -67,25 +67,24 @@ class StoreRepresentadoAdminService
                 ]);
             }
 
-            // LÓGICA DE GENERACIÓN DE CÉDULA AUTOMÁTICA
+            // --- LÓGICA DE GENERACIÓN DE CÉDULA AUTOMÁTICA (CORREGIDA) ---
             $baseCedula = $representanteUser->cedula;
-            $cedulaParaCrear = $baseCedula; // La cédula inicial es la del representante
 
-            // Contar cuántos representados ya tiene este usuario cuya cédula COMIENZA
-            // con la cédula base del representante.
+            // Contar cuántos representados ya tiene este usuario con una cédula que empieza
+            // con la cédula del representante (esto incluye sufijos).
             $representadosExistentesCount = Representado::where('user_id', $userId)
                                                      ->where('cedula', 'LIKE', $baseCedula . '%')
                                                      ->count();
 
-            // Si ya existen representados con esta cédula base, añade un sufijo numérico
-            if ($representadosExistentesCount > 0) {
-                // El sufijo será la cantidad de existentes + 1
-                $sufijo = $representadosExistentesCount + 1;
-                $cedulaParaCrear = $baseCedula . $sufijo;
-            }
+            // El sufijo será la cantidad de existentes + 1. Esto asegura que siempre haya un sufijo
+            // y que nunca se duplique la cédula del representante.
+            $sufijo = $representadosExistentesCount + 1;
+            $cedulaParaCrear = $baseCedula . $sufijo;
 
-            // 3. VALIDACIÓN DE UNICIDAD MANUAL para la cédula definitiva (generada)
-            // Comprueba si la cédula final (original o con sufijo) ya existe en 'representados'.
+            // --- FIN DE LA LÓGICA CORREGIDA ---
+
+            // 3. VALIDACIÓN DE UNICIDAD para la cédula definitiva (generada)
+            // Comprueba si la cédula final (con sufijo) ya existe en 'representados'.
             if (Representado::where('cedula', $cedulaParaCrear)->exists()) {
                 throw ValidationException::withMessages([
                     'cedula' => 'La cédula generada (' . $cedulaParaCrear . ') ya existe para otro representado. Por favor, contacte a soporte si cree que es un error.',

@@ -223,3 +223,14 @@ Route::prefix('vacunas')->middleware(['auth:sanctum', 'role:admin,personal_de_sa
     Route::get('/', [VacunaController::class, 'index']);
 
 });
+
+
+// =============================================================
+//  PERSONAL DE SALUD REGISTROS GROUP - SOLO ACCESIBLE POR PERSONAL DE SALUD
+// =============================================================
+Route::prefix('mis-registros')->middleware(['auth:sanctum', 'role:personal_de_salud'])->group(function () {
+
+// New route with date parameters
+Route::get('/{fecha_desde}/{fecha_hasta}', [RegistroController::class, 'misRegistros']);
+
+});

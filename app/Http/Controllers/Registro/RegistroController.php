@@ -9,6 +9,7 @@ use App\Services\Registro\UpdateRegistroVacunaService;
 use App\Services\Registro\IndexRegistroService;
 use App\Services\Registro\ShowRegistroService;
 use App\Services\Registro\EstadisticaVacunaService; 
+use App\Services\Registro\ListarRegistrosPorUsuarioService; // <-- ¡Asegúrate de importar el servicio!
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +20,8 @@ class RegistroController extends Controller
 {
     protected $buscarPersonaService;
     protected $storeRegistroVacunaService;
-    protected $updateRegistroVacunaService; // <-- Nueva propiedad para el servicio de actualización
+    protected $updateRegistroVacunaService; 
+    protected $listarRegistrosPorUsuarioService; // <-- ¡PROPIEDAD AGREGADA!
 
     /**
      * Constructor del controlador.
@@ -28,11 +30,13 @@ class RegistroController extends Controller
     public function __construct(
         BuscarPersonaService $buscarPersonaService,
         StoreRegistroVacunaService $storeRegistroVacunaService,
-        UpdateRegistroVacunaService $updateRegistroVacunaService // <-- Inyección del nuevo servicio
+        UpdateRegistroVacunaService $updateRegistroVacunaService,
+        ListarRegistrosPorUsuarioService $listarRegistrosPorUsuarioService // <-- Inyección
     ) {
         $this->buscarPersonaService = $buscarPersonaService;
         $this->storeRegistroVacunaService = $storeRegistroVacunaService;
-        $this->updateRegistroVacunaService = $updateRegistroVacunaService; // <-- Asigna el nuevo servicio
+        $this->updateRegistroVacunaService = $updateRegistroVacunaService;
+        $this->listarRegistrosPorUsuarioService = $listarRegistrosPorUsuarioService; // <-- Asignación
     }
 
     /**
@@ -40,7 +44,6 @@ class RegistroController extends Controller
      */
     public function searchByCedula(Request $request): JsonResponse
     {
-        // ... (código existente para searchByCedula) ...
         try {
             $result = $this->buscarPersonaService->search($request);
             if ($result) {
@@ -64,7 +67,6 @@ class RegistroController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        // ... (código existente para store) ...
         try {
             return $this->storeRegistroVacunaService->execute($request);
         } catch (ValidationException $e) {
@@ -110,7 +112,7 @@ class RegistroController extends Controller
     }
 
 
- public function indexRegistros(Request $request, string $fecha_inicio, string $fecha_fin, IndexRegistroService $indexRegistroService): JsonResponse
+    public function indexRegistros(Request $request, string $fecha_inicio, string $fecha_fin, IndexRegistroService $indexRegistroService): JsonResponse
     {
         // El controlador simplemente delega y devuelve la respuesta del servicio.
         // El servicio se encarga de manejar los errores y formatear el JSON.
@@ -132,9 +134,21 @@ class RegistroController extends Controller
     }
 
 
-        public function estadisticasVacunas(string $fecha_inicio, string $fecha_fin, EstadisticaVacunaService $estadisticaService): JsonResponse
+    public function estadisticasVacunas(string $fecha_inicio, string $fecha_fin, EstadisticaVacunaService $estadisticaService): JsonResponse
     {
         // Delega la lógica de cálculo y manejo de la respuesta al servicio.
         return $estadisticaService->execute($fecha_inicio, $fecha_fin);
     }
+
+    /**
+     * Muestra los registros de vacunas creados por el usuario autenticado con rol 'personal_de_salud'.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+public function misRegistros(Request $request, string $fecha_desde, string $fecha_hasta): JsonResponse
+{
+    // Delega la lógica de negocio al servicio, pasando los parámetros de la ruta
+    return $this->listarRegistrosPorUsuarioService->execute($request, $fecha_desde, $fecha_hasta);
+}
 }
