@@ -8,6 +8,7 @@ use App\Services\Registro\StoreRegistroVacunaService;
 use App\Services\Registro\UpdateRegistroVacunaService;
 use App\Services\Registro\IndexRegistroService;
 use App\Services\Registro\ShowRegistroService;
+use App\Services\Registro\EstadisticaVacunaService; 
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -128,5 +129,12 @@ class RegistroController extends Controller
         // El controlador simplemente delega y devuelve la respuesta del servicio.
         // El servicio se encarga de encontrar el registro y manejar los errores 404/500.
         return $showRegistroService->execute($id);
+    }
+
+
+        public function estadisticasVacunas(string $fecha_inicio, string $fecha_fin, EstadisticaVacunaService $estadisticaService): JsonResponse
+    {
+        // Delega la lógica de cálculo y manejo de la respuesta al servicio.
+        return $estadisticaService->execute($fecha_inicio, $fecha_fin);
     }
 }

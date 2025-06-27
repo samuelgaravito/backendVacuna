@@ -191,6 +191,8 @@ Route::prefix('admin/registro')->middleware(['auth:sanctum', 'role:admin'])->gro
 
     Route::get('/{fecha_inicio}/{fecha_fin}', [RegistroController::class, 'indexRegistros']);
     Route::get('/{id}', [RegistroController::class, 'show']);
+    Route::get('/estadisticas/{fecha_inicio}/{fecha_fin}', [RegistroController::class, 'estadisticasVacunas']);
+
 });
 
 
